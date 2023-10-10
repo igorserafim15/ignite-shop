@@ -3,13 +3,15 @@ import { useKeenSlider } from 'keen-slider/react'
 import { stripe } from '../lib/stripe'
 import { GetStaticProps } from 'next'
 import Stripe from 'stripe'
+import Link from 'next/link'
+import { formatPrice } from '../utils'
 
 interface HomeProps {
   products: {
     id: string
     name: string
     imageUrl: string
-    price: number
+    price: string
   }[]
 }
 
@@ -24,8 +26,10 @@ export default function Home({ products }: HomeProps) {
       ref={sliderRef}
     >
       {products.map((product) => (
-        <a
+        <Link
+          href={`product/${product.id}`}
           key={product.id}
+          prefetch={false}
           className="keen-slider__slide bg-product rounded-lg  cursor-pointer relative flex items-center justify-center group overflow-hidden"
         >
           <Image
@@ -41,7 +45,7 @@ export default function Home({ products }: HomeProps) {
               {product.price}
             </span>
           </footer>
-        </a>
+        </Link>
       ))}
     </div>
   )
@@ -51,13 +55,6 @@ export const getStaticProps: GetStaticProps = async () => {
   const response = await stripe.products.list({
     expand: ['data.default_price'],
   })
-
-  function formatPrice(price: number) {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(price)
-  }
 
   const products = response.data.map((product) => ({
     id: product.id,
